@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Contents\Header">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Contents\cpp">
+      <UniqueIdentifier>{623b21de-dce4-4c24-a7b6-fbf78ccb0ee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug">
+      <UniqueIdentifier>{e472d776-ab95-444f-84da-6674cdf95d00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\Engine">
+      <UniqueIdentifier>{c9a609d5-eaab-403d-8755-3b2124fefa87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\Time">
+      <UniqueIdentifier>{1d232899-0354-4d1d-bef0-9350dd562ede}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\Thread">
+      <UniqueIdentifier>{47bffc4b-923e-4bed-a669-7d845ca2adb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\Define">
+      <UniqueIdentifier>{6cda893a-4eda-473e-9918-83308d35fab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{63cc2050-71e3-415f-98b9-5b82d14a2a3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\ImGui">
+      <UniqueIdentifier>{9aca0d51-5f30-4dd2-8916-be78f1607a47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\Http">
+      <UniqueIdentifier>{81d9eadd-5710-4754-86a4-17d13842fd54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\MyImGui">
+      <UniqueIdentifier>{b6f4026b-c680-4b52-b571-18e360ccdb42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\PCAN">
+      <UniqueIdentifier>{6fb6d7f5-0ee3-4788-8ceb-8a5cb0da9d7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\PCAN">
+      <UniqueIdentifier>{f765292a-3d3e-4c98-ae2c-aad38d9384e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\0.PreCompile">
+      <UniqueIdentifier>{5ddd2a10-04f5-4cca-b962-b6bc11ad517e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="A.Debug\Logger">
+      <UniqueIdentifier>{21f5b08d-c492-451f-9042-b497cee383ce}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineDebug.cpp">
+      <Filter>A.Debug\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="MyTime.cpp">
+      <Filter>A.Debug\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineCore.cpp">
+      <Filter>A.Debug\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>A.Debug\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui.cpp">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_draw.cpp">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_dx11.cpp">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\backends\imgui_impl_win32.cpp">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_tables.cpp">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\ImGui\imgui_widgets.cpp">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="MyHttp.cpp">
+      <Filter>A.Debug\Http</Filter>
+    </ClCompile>
+    <ClCompile Include="MyImGui.cpp">
+      <Filter>Contents\MyImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiInterface.cpp">
+      <Filter>Contents\MyImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="MyCan.cpp">
+      <Filter>A.Debug\PCAN</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>A.Debug\0.PreCompile</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>A.Debug\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="CsvLogger.cpp">
+      <Filter>A.Debug\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="ByteBuffer.cpp">
+      <Filter>A.Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialPort.cpp">
+      <Filter>A.Debug</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EngineDebug.h">
+      <Filter>A.Debug\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="MyTime.h">
+      <Filter>A.Debug\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineCore.h">
+      <Filter>A.Debug\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>A.Debug\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="MyDefine.h">
+      <Filter>A.Debug\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imgui.h">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_dx11.h">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\backends\imgui_impl_win32.h">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\ImGui\imgui_internal.h">
+      <Filter>ThirdParty\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="MyHttp.h">
+      <Filter>A.Debug\Http</Filter>
+    </ClInclude>
+    <ClInclude Include="MyImGui.h">
+      <Filter>Contents\MyImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiInterface.h">
+      <Filter>Contents\MyImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="MyCan.h">
+      <Filter>A.Debug\PCAN</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\PCAN\PCANBasic.h">
+      <Filter>ThirdParty\PCAN</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\PCAN\PCANBasicCLR.h">
+      <Filter>ThirdParty\PCAN</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>A.Debug\0.PreCompile</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>A.Debug\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="CsvLogger.h">
+      <Filter>A.Debug\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="ByteBuffer.h">
+      <Filter>A.Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialPort.h">
+      <Filter>A.Debug</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
