@@ -117,6 +117,27 @@
     <ClCompile Include="SerialPort.cpp">
       <Filter>A.Debug</Filter>
     </ClCompile>
+    <ClCompile Include="fw_crc16.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="fw_protocol.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="fw_sensor_query.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="fw_mcu_download.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="fw_mmic_download.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="fw_can_pcan.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="fw_getdata.c">
+      <Filter>Contents\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineDebug.h">
@@ -178,6 +199,30 @@
     </ClInclude>
     <ClInclude Include="SerialPort.h">
       <Filter>A.Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_common.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_crc16.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_can_pcan.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_protocol.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_sensor_query.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_mcu_download.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_mmic_download.h">
+      <Filter>Contents\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fw_getdata.h">
+      <Filter>Contents\Header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

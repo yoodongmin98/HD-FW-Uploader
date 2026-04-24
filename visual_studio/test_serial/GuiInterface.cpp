@@ -1,15 +1,62 @@
 //std
 #include "pch.h"
 
-
-#include <imgui_internal.h>
-#include "MyImGui.h"
-#include "MyDefine.h"
 #include "GuiInterface.h"
 
+// c ///////////////////////////////////////
+#include <cstdio>
+#include <atomic>
 
+#include "PCANBasic.h"
+
+extern "C"
+{
+#include "fw_common.h"
+#include "fw_can_pcan.h"
+#include "fw_sensor_query.h"
+#include "fw_getdata.h"
+#include "fw_mcu_download.h"
+#include "fw_mmic_download.h"
+}
+////////////////////////////////////////////
+
+static std::atomic<bool> g_Cancel = false;
 GuiInterface* GuiInterface::GUI = nullptr;
+static void MyLogCallback(void* user, FW_LogLevel level, const char* text)
+{
+    const char* levelStr = "INFO";
 
+    switch (level)
+    {
+    case FW_LOG_INFO:  levelStr = "INFO"; break;
+    case FW_LOG_WARN:  levelStr = "WARN"; break;
+    case FW_LOG_ERROR: levelStr = "ERROR"; break;
+    case FW_LOG_DEBUG: levelStr = "DEBUG"; break;
+    default: break;
+    }
+
+    std::printf("[%s] %s\n", levelStr, text ? text : "");
+}
+
+static void MyProgressCallback(void* user, const FW_Progress* progress)
+{
+    if (progress == nullptr)
+    {
+        return;
+    }
+
+    std::printf("sensor=%u, seq=%u, sent=%u/%u, %u%%\n",
+        (unsigned int)progress->sensor_id,
+        (unsigned int)progress->packet_seq,
+        (unsigned int)progress->sent_bytes,
+        (unsigned int)progress->total_bytes,
+        (unsigned int)progress->percent);
+}
+
+static int MyCancelCallback(void* user)
+{
+    return g_Cancel.load() ? 1 : 0;
+}
 GuiInterface::GuiInterface()
 {
 	GUI = this;
@@ -21,208 +68,163 @@ GuiInterface::~GuiInterface()
 
 
 
+
 void GuiInterface::Instance(ImGuiIO& io)
 {
-	//LoopStart
-}
+    static FW_CanHandle* CanHandle = nullptr;
+    static FW_SensorList SensorList = {};
+    static uint8_t SelectedSensorId = 1;
+    static FW_GetDataResponse LastDataRes = {};
+    static bool IsConnected = false;
 
+    FW_Callbacks callbacks = {};
+    callbacks.log_cb = MyLogCallback;
+    callbacks.progress_cb = MyProgressCallback;
+    callbacks.cancel_cb = MyCancelCallback;
+    callbacks.user_data = nullptr;
 
-//shell 단에 명령어 보내주는 함수
-std::string GuiInterface::executeCommand(std::string command)
-{
-	std::array<char, 128> buffer;
-	std::string result;
+    if (ImGui::Button("Open"))
+    {
+        if (CanHandle == nullptr)
+        {
+            FW_CanConfig canConfig = {};
+            canConfig.channel = PCAN_USBBUS1;
+            canConfig.nominal_bitrate = 1000000;
+            canConfig.fd_enable = 1;
 
-	FILE* pipe = _popen(command.c_str(), "r");
-	if (!pipe)
-	{
-		std::cerr << "Error: Unable to open pipe for command: " << command << std::endl;
-		return result;
-	}
+            canConfig.f_clock_mhz = 40;
+            canConfig.nom_brp = 2;
+            canConfig.nom_tseg1 = 10;
+            canConfig.nom_tseg2 = 9;
+            canConfig.nom_sjw = 8;
 
-	while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr)
-	{
-		result += buffer.data();
-	}
+            canConfig.data_brp = 2;
+            canConfig.data_tseg1 = 5;
+            canConfig.data_tseg2 = 4;
+            canConfig.data_sjw = 3;
 
-	_pclose(pipe);
+            FW_Result result = fw_can_open(&CanHandle, &canConfig, &callbacks);
+            if (result == FW_RESULT_OK)
+            {
+                IsConnected = true;
+                std::printf("PCAN Open Success\n");
+            }
+            else
+            {
+                std::printf("fw_can_open failed : %d\n", result);
+            }
+        }
+    }
 
-	return result;
-}
+    ImGui::SameLine();
 
+    if (ImGui::Button("Scan"))
+    {
+        if (CanHandle != nullptr)
+        {
+            FW_Result result = fw_query_sensor_ids(CanHandle, &SensorList, 2000, &callbacks);
+            if (result == FW_RESULT_OK)
+            {
+                std::printf("Sensor Count : %u\n", (unsigned int)SensorList.count);
 
-//빙글빙글 돌아가는 스피너~(로딩)
-void GuiInterface::Spinner(const char* label, float radius, float thickness, const ImVec4& color)
-{
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-	if (window->SkipItems) return;
+                if (SensorList.count > 0)
+                {
+                    SelectedSensorId = SensorList.ids[0];
+                    std::printf("Selected Sensor ID : %u\n", (unsigned int)SelectedSensorId);
+                }
+            }
+            else
+            {
+                std::printf("fw_query_sensor_ids failed : %d\n", result);
+            }
+        }
+    }
 
-	ImGuiContext& g = *GImGui;
-	const ImGuiID id = window->GetID(label);
-	const ImVec2 pos = ImGui::GetCursorScreenPos();
-	const float time = (float)ImGui::GetTime();
+    ImGui::SameLine();
 
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    if (ImGui::Button("GetData"))
+    {
+        if (CanHandle != nullptr)
+        {
+            FW_Result result = fw_get_sensor_data(CanHandle, 14, &LastDataRes, 2000, &callbacks);
+            if (result == FW_RESULT_OK)
+            {
+                std::printf("GetData OK - Sensor=%u, SensorOnOff=%u, StaticObj=%u\n",
+                    (unsigned int)LastDataRes.sensor_id,
+                    (unsigned int)LastDataRes.sensor_onoff,
+                    (unsigned int)LastDataRes.static_obj_onoff);
+            }
+            else
+            {
+                std::printf("fw_get_sensor_data failed : %d\n", result);
+            }
+        }
+    }
 
-	const int num_segments = 30;
-	const float start = fabsf(sinf(time * 1.8f)) * (num_segments - 5);
+    if (ImGui::Button("MCU Download"))
+    {
+        if (CanHandle != nullptr)
+        {
+            FW_McuDownloadOption mcuOpt = {};
+            mcuOpt.sensor_id = 14;
+            mcuOpt.file_path = "brs.bin";
+            mcuOpt.send_timeout_ms = 2000;
+            mcuOpt.recv_timeout_ms = 3000;
+            mcuOpt.retry_count = 4;
 
-	const float a_min = IM_PI * 2.0f * ((float)start) / (float)num_segments;
-	const float a_max = IM_PI * 2.0f * ((float)num_segments - 3) / (float)num_segments;
+            FW_Result result = fw_download_mcu_firmware(CanHandle, &mcuOpt, &callbacks);
+            if (result == FW_RESULT_OK)
+            {
+                std::printf("MCU Download Success\n");
+            }
+            else
+            {
+                std::printf("fw_download_mcu_firmware failed : %d\n", result);
+            }
+        }
+    }
 
-	const ImVec2 centre = ImVec2(pos.x + radius, pos.y + radius);
+    ImGui::SameLine();
 
-	for (int i = 0; i < num_segments; i++)
-	{
-		const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
-		ImVec2 p1 = ImVec2(centre.x + cosf(a) * radius, centre.y + sinf(a) * radius);
-		ImVec2 p2 = ImVec2(centre.x + cosf(a + 0.1f) * radius, centre.y + sinf(a + 0.1f) * radius);
+   if (ImGui::Button("MMIC Download"))
+    {
+        if (CanHandle != nullptr)
+        {
+            FW_MmicDownloadOption mmicOpt = {};
+            mmicOpt.sensor_id = 14;
+            mmicOpt.file_path = "mmic.bin";
+            mmicOpt.send_timeout_ms = 2000;
+            mmicOpt.recv_timeout_ms = 4000;
+            mmicOpt.retry_count = 3;
 
-		draw_list->AddLine(p1, p2, ImColor(color), thickness);
-	}
+            FW_Result result = fw_download_mmic_firmware(CanHandle, &mmicOpt, &callbacks);
+            if (result == FW_RESULT_OK)
+            {
+                std::printf("MMIC Download Success\n");
+            }
+            else
+            {
+                std::printf("fw_download_mmic_firmware failed : %d\n", result);
+            }
+        }
+    }
 
-	ImGui::Dummy(ImVec2((radius) * 2, (radius) * 2));
-}
+    ImGui::SameLine();
+    
+    if (ImGui::Button("Disconnect"))
+    {
+        if (CanHandle != nullptr)
+        {
+            fw_can_close(CanHandle);
+            CanHandle = nullptr;
+            IsConnected = false;
+            std::printf("PCAN Closed\n");
+        }
+    }
 
-
-//경로에서 파일이름 추출
-std::string GuiInterface::ExtractFileName(std::string _Path)
-{
-	size_t pos = _Path.find_last_of("\\");
-	std::string filenames = (pos == std::string::npos) ? _Path : _Path.substr(pos + 1);
-	return filenames;
-}
-
-
-//워터마크 (TextMultiline뒤에 써야함)
-void GuiInterface::TextWaterMark(std::string& _Text, ImVec2 _Pos, ImVec2 _Padding)
-{
-	ImVec2 textPos = ImVec2(_Pos.x + _Padding.x, _Pos.y + _Padding.y);
-	ImGui::GetWindowDrawList()->AddText
-	(
-		textPos,
-		IM_COL32(150, 150, 150, 255),
-		_Text.c_str()
-	);
-}
-
-
-//파일 오픈 함수
-std::string GuiInterface::OpenFileDialog(const std::string& description, const std::vector<std::string>& extensions)
-{
-	std::vector<char> filter;
-
-	// 설명 추가 (e.g. "Firmware Files\0")
-	std::string desc = description + " Files";
-	filter.insert(filter.end(), desc.begin(), desc.end());
-	filter.push_back('\0');
-
-	// 확장자 추가 (e.g. "*.bin;*.hex;*.elf\0")
-	for (size_t i = 0; i < extensions.size(); ++i)
-	{
-		std::string ext = "*." + extensions[i];
-		filter.insert(filter.end(), ext.begin(), ext.end());
-		if (i != extensions.size() - 1)
-			filter.push_back(';');
-	}
-	filter.push_back('\0');
-
-	// All Files 추가
-	std::string allDesc = "All Files";
-	filter.insert(filter.end(), allDesc.begin(), allDesc.end());
-	filter.push_back('\0');
-
-	std::string allPattern = "*.*";
-	filter.insert(filter.end(), allPattern.begin(), allPattern.end());
-	filter.push_back('\0');  // 마지막 이중 널 문자
-
-	char fileName[MAX_PATH] = { 0 };
-	OPENFILENAME ofn;
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = nullptr;
-	ofn.lpstrFilter = filter.data(); 
-	ofn.lpstrFile = fileName;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-
-	if (GetOpenFileName(&ofn))
-	{
-		return std::string(fileName);
-	}
-	return "";
-}
-
-
-//파일 저장 함수
-std::string GuiInterface::SaveFileDialog(const std::string& description, const std::vector<std::string>& extensions, const std::string& defaultExt)
-{
-	std::vector<char> filter;
-
-	// 설명 추가
-	std::string desc = description + " Files";
-	filter.insert(filter.end(), desc.begin(), desc.end());
-	filter.push_back('\0');
-
-	// 확장자 패턴 추가 (예: *.txt;*.log)
-	for (size_t i = 0; i < extensions.size(); ++i)
-	{
-		std::string ext = "*." + extensions[i];
-		filter.insert(filter.end(), ext.begin(), ext.end());
-		if (i != extensions.size() - 1)
-			filter.push_back(';');
-	}
-	filter.push_back('\0');
-
-	// All Files 추가
-	std::string allDesc = "All Files";
-	filter.insert(filter.end(), allDesc.begin(), allDesc.end());
-	filter.push_back('\0');
-
-	std::string allPattern = "*.*";
-	filter.insert(filter.end(), allPattern.begin(), allPattern.end());
-	filter.push_back('\0');  // 마지막 이중 null 종료
-
-	// 파일 저장 다이얼로그 구성
-	OPENFILENAME ofn;
-	char szFile[MAX_PATH] = { 0 };
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = nullptr;
-	ofn.lpstrFilter = filter.data();
-	ofn.lpstrFile = szFile;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-	ofn.lpstrDefExt = defaultExt.c_str();
-
-	if (GetSaveFileName(&ofn))
-	{
-		std::wcout << L"파일 저장 경로: " << szFile << std::endl;
-		return std::string(szFile);
-	}
-	else
-	{
-		std::wcout << L"파일 저장 취소됨" << std::endl;
-		return "";
-	}
-}
-
-
-
-
-//리틀에디안 형식의 hex데이터를 float형식으로 바꿔주는 함수(static_cast)
-float GuiInterface::ParseLittleEndian_Float(const std::vector<uint8_t>& _data, size_t _offset , size_t _size)
-{
-	if (_offset + 4 > _data.size())
-		throw std::out_of_range("Offset + size out of bounds");
-
-	uint32_t temp = 0;
-	for (size_t i = 0; i < _size; ++i)
-	{
-		temp |= static_cast<uint32_t>(_data[_offset + i]) << (8 * i);
-	}
-
-	float result;
-	std::memcpy(&result, &temp, sizeof(float));
-	return result;
+    ImGui::Text("Connected : %s", IsConnected ? "True" : "False");
+    ImGui::Text("Sensor Count : %u", (unsigned int)SensorList.count);
+    ImGui::Text("Selected Sensor ID : %u", (unsigned int)SelectedSensorId);
+    ImGui::Text("SensorOnOff : %u", (unsigned int)LastDataRes.sensor_onoff);
+    ImGui::Text("StaticObjOnOff : %u", (unsigned int)LastDataRes.static_obj_onoff);
 }
